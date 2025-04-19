@@ -1,61 +1,67 @@
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.tools import google_search
-from .prompts import STRUCTURE_PROMPT, CRITIC_PROMPT, FORMATTER_PROMPT
 from google.adk.agents.loop_agent import LoopAgent
+from .prompts import COMPANY_NAME_PROMPT,EVENT_TITLE_PROMPT,DEADLINE_PROMPT,RESEARCH_PROMPT
 
-# --- State Keys ---
-STATE_STRUCTURED_INFO = "structured_deadline_data"
-STATE_CRITIC_FEEDBACK = "critic_feedback"
-STATE_FINAL_FORMAT = "formatted_company_info"
+from google.adk.agents.parallel_agent import ParallelAgent
 
 MODEL = "gemini-2.0-flash-exp"
 
-# --- Agent 1: Extract Structured Data from Company Email ---
-company_structure_agent = LlmAgent(
-    name="CompanyStructureAgent",
+company_name_agent=LlmAgent(
+    name="company_name_extraction_agent",
     model=MODEL,
-    instruction=STRUCTURE_PROMPT,
-    output_key=STATE_STRUCTURED_INFO,
-    tools=[google_search],
+    instruction=COMPANY_NAME_PROMPT,
+    description="extract the company name",
+    output_key="company_name"
 )
 
-# --- Agent 2: Critic Agent to verify Company Info ---
-company_critic_agent = LlmAgent(
-    name="CompanyCriticAgent",
+event_title_agent=LlmAgent(
+    name="event_agent",
     model=MODEL,
-    instruction=CRITIC_PROMPT,
-    output_key=STATE_CRITIC_FEEDBACK,
-    tools=[google_search],
-)
-
-# --- Agent 3: Formatter Agent to output final Company JSON ---
-company_formatter_agent = LlmAgent(
-    name="CompanyFormatterAgent",
-    model=MODEL,
-    instruction=FORMATTER_PROMPT,
-    output_key=STATE_STRUCTURED_INFO,  # Rewrites the same key with formatted JSON
-)
-
-# Define the root agent using Loop
-root_agent1 = LoopAgent(
-    name="MainCompanyloopAgent",
-    max_iterations=3,
-    sub_agents=[company_structure_agent,company_critic_agent,company_formatter_agent]
+    description="extracts the event title for creating the event in google remainder",
+    instruction=EVENT_TITLE_PROMPT,
+    output_key="event_title"
     
 )
 
-# root_agent=LlmAgent(
-#     name="MainCompanyRootAgent",
-#     instruction="the input must be passed to agent call `MainCompanyloopAgent`",
-#     output_key=STATE_FINAL_FORMAT,
-#     model=MODEL,
-#     sub_agents=[root_agent1]
-# )
 
-root_agent=LlmAgent(
-    name="extract_deadline_agent",
-    description="extracts the deadline",
+deadline_agent = LlmAgent(
+    name="deadline_agent",
     model=MODEL,
-    instruction="extract the deadline from the input in the standard time format",
+    instruction=DEADLINE_PROMPT,
+    description="Extracts the deadline time from the message",
     output_key="deadline"
 )
+
+from google.adk.agents.llm_agent import LlmAgent
+
+research_agent = LlmAgent(
+    name="company_research_agent",
+    model=MODEL,
+    instruction=RESEARCH_PROMPT,
+    description="Provides brief research on the given company",
+    output_key="company_research"
+)
+
+company_agent = ParallelAgent(
+    name="root_agent_of_company",
+    sub_agents=[
+        research_agent,
+        company_name_agent,
+        event_title_agent,
+        deadline_agent
+    ]
+)
+
+
+
+# company_root_agent = LlmAgent(
+#     name="company_wrapper_agent",
+#     description="Wrapper agent to run parallel agent via run_live",
+#     agent=ParallelAgent(
+#         name="company_parallel_agent",
+#         description="Runs all info extractors in parallel",
+#         sub_agents=[company_name_agent, deadline_agent, research_agent]
+#     ),
+#     model="gemini-1.5-pro"  # Just needed so LlmAgent is valid
+# )

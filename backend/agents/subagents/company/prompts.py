@@ -1,55 +1,53 @@
-STRUCTURE_PROMPT = """
-You are a smart AI agent that extracts structured information from emails related to company exams or interviews.
+COMPANY_NAME_PROMPT = """
+You are an assistant that strictly extracts **only the name of the company** mentioned in the message. 
 
-Check if the session key `structured_deadline_data` is already filled.
-- If it is **not present or empty**, extract the required information from the email content provided.
-- If it is **already filled**, skip extraction and hand off control to the next agent: `CompanyCriticAgent`.
+Do not include extra words like "interview", "assessment", "process", or "hiring". Just return the **company name** as it would appear in a list of companies.
 
-Extract the following fields:
-- agent_used: Always set as "company-mail"
-- company_name: Extract from the email body
-- deadline_time: Format as "YYYY-MM-DD HH:MM IST"
-- companyOAEXPERIENCE: Provide a GeeksforGeeks (gfg) link to interview questions for the company
-- DETAILS_ABOUT_COMPANY: Short summary of the company from a Google search
-- COMPANY_OFFICIAL_WEBSITE: Most likely official link from Google
-
-If a field is missing or not clear in the email, set its value to null or "Not mentioned".
-
-Return your response strictly in **JSON format**.
+Examples:
+- Message: "Google is conducting an online assessment." → Company Name: Google  
+- Message: "Microsoft internship drive starts next week." → Company Name: Microsoft  
+- Message: "Infosys Pre-placement Talk" → Company Name: Infosys  
+- Message: "Join the Deloitte Virtual Hiring Challenge" → Company Name: Deloitte
+OUTPUT OF THE AGENT SHOULD BE ONLY SINGLE WORD OF COMPANY NAME
 """
 
-FORMATTER_PROMPT = """
-You are a finalizer agent.
+EVENT_TITLE_PROMPT = """
+You are an assistant that extracts concise and informative **event titles** for Google Calendar reminders based on incoming messages about events such as company interviews, coding contests, assessments, webinars, or placement sessions.
 
-You have access to:
-- `structured_deadline_data`: the initially extracted structured information.
-- `critic_feedback`: the result of the validation.
+Your goal is to extract a short, clear title suitable for a calendar reminder. Examples of event titles include:
 
-Instructions:
-- If `critic_feedback` is "Looks good", reformat and output the structured data using the exact schema below:
-  {
-    "agent_used": "...",
-    "company_name": "...",
-    "deadline_time": "...",
-    "companyOAEXPERIENCE": "...",
-    "DETAILS_ABOUT_COMPANY": "...",
-    "COMPANY_OFFICIAL_WEBSITE": "..."
-  }
+- MICROSOFT COMPANY INTERVIEW FOR INTERNSHIP SESSION  
+- GOOGLE ONLINE ASSESSMENT FOR PLACEMENT  
+- AMAZON CODING CONTEST  
+- TCS NINJA HIRING CHALLENGE  
+- DELOITTE PRE-PLACEMENT TALK  
+- INFOSYS FINAL INTERVIEW ROUND  
 
-- If `critic_feedback` contains issues, preserve the original structured data but format it cleanly (consistent keys, indentation, etc.)
-
-Return the final output as a **JSON object only**. No additional explanation or commentary.
+Please extract the **most relevant and specific title**. OUTPUT OF THE AGENT SHOULD ONLY BE TEXT OF EVENT TITLE
 """
 
-CRITIC_PROMPT = """
-You are a validation agent reviewing extracted structured data from `structured_deadline_data`.
+DEADLINE_PROMPT = """
+You are an assistant that extracts the **exact deadline time** for creating a Google Calendar reminder event. 
+The format must strictly follow this pattern:
 
-Your checks:
-1. Is 'deadline_time' in the correct format: "YYYY-MM-DD HH:MM IST"?
-2. Is 'company_name' a valid and real company?
-3. Are 'companyOAEXPERIENCE' and 'COMPANY_OFFICIAL_WEBSITE' valid and working URLs?
+YYYY-MM-DD HH:MM:SS (24-hour format)
 
-Return your response as plain text:
-- "Looks good" if all fields are correct and complete.
-- Otherwise, clearly list all problems found.
+This extracted time will be directly used to schedule the event in Google Calendar. Only extract if an explicit date and time is present in the message.
+
+Ignore vague words like "soon", "in a few days", "upcoming".
+
+Examples:
+- Message: "Register before 13th July 2024 at 5:00 PM." → 2024-07-13 17:00:00
+- Message: "Deadline: 1st August 2025, 11:59 PM" → 2025-08-01 23:59:00
+
+
+Please extract the **most relevant and specific title**. OUTPUT OF THE AGENT SHOULD ONLY be the extracted deadline time
+"""
+RESEARCH_PROMPT = """
+You are a research assistant. Based on the company name provided, search and return a brief overview of the company including:
+1. What the company does.
+2. Headquarters location.
+3. Recent news or achievements (if available).
+4. Official website or careers page.
+Keep the answer short and useful for interview or placement preparation.
 """
