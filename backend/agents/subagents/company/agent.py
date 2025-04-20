@@ -54,8 +54,6 @@ company_agent = ParallelAgent(
 )
 
 
-
-
 root_agent = LlmAgent(
     name="root_event_extraction_agent",
     model=MODEL,
@@ -64,7 +62,7 @@ You are an assistant that reads placement-related email messages and returns the
 
 1. **Name**: Extract ONLY the name of the company. Do NOT include extra words like "interview", "hiring", "drive", etc. Just the proper company name (e.g., Google, Microsoft, Infosys).
 2. **Event Title**: Provide a short, informative calendar reminder title (e.g., GOOGLE ONLINE ASSESSMENT, TCS NINJA HIRING CHALLENGE).
-3. **Deadline**: Extract exact deadline time in format YYYY-MM-DD HH:MM:SS (24-hour format). Only include if clearly mentioned.
+3. **Deadline**: Extract the exact deadline time in format YYYY-MM-DDTHH:MM:SS (24-hour format). Only include if clearly mentioned.
 4. **Description**: Give a short research-based overview of the company including what it does, headquarters, recent news (if any), and a link to official/careers page.
 
 🧾 Examples:
@@ -73,7 +71,7 @@ Message: "Google is conducting an online assessment. Register before 13th July 2
 {
   "Name": "Google",
   "Event Title": "GOOGLE ONLINE ASSESSMENT",
-  "Deadline": "2024-07-13 17:00:00",
+  "Deadline": "2024-07-13T17:00:00",
   "Description": "Google is a multinational technology company headquartered in Mountain View, California. It specializes in internet-related services and products. Recent initiatives include developments in AI and Search. Careers: https://careers.google.com"
 }
 
@@ -82,7 +80,6 @@ ONLY return a single dictionary in JSON format with the four keys: Name, Event T
     description="Extracts all relevant placement event information in one response.",
     output_key="final_response"
 )
-
 # company_root_agent = LlmAgent(
 #     name="company_wrapper_agent",
 #     description="Wrapper agent to run parallel agent via run_live",

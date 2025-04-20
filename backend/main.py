@@ -361,6 +361,7 @@ async def call_agent_async(query: str, runner, app_name: str, session_id: str):
             # Check if the cleaned output is valid JSON
             try:
                 parsed_data = json.loads(cleaned_output)
+                print(parsed_data)
             except json.JSONDecodeError as e:
                 print(f"Skipping email due to JSON decode error: {e}")
                 return {"deadline": "No deadline extracted."}
@@ -440,8 +441,8 @@ async def get_deadline(body_input: BodyInput):
 
         # Call the agent asynchronously to process the query
         agent_res = await call_agent_async(body, runner, APP_NAME, session_id)
-        deadline = agent_res['deadline'].strip()
-        print(deadline)
+        deadline = agent_res['deadline']
+        print("deadline we got is", deadline)
 
         return agent_res
 
@@ -543,21 +544,157 @@ async def get_emails(request: Request):
 
     return {"emails": emails}
 
+
+# processed_ids = set()
+# @app.post('/createEvents')
+# async def createEvents(request: Request):
+#     data = await request.json()
+#     access_token = data.get("access_token")
+    
+#     if not access_token:
+#         return {"success": False, "error": "Access token missing"}
+
+#     # Fetch the last 5 emails using the get_emails logic
+#     emails = []
+
+#     async with httpx.AsyncClient() as client:
+#         email_res = await client.get(
+#             f"https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5",
+#             headers={"Authorization": f"Bearer {access_token}"}
+#         )
+#         messages = email_res.json().get("messages", [])
+
+#         for message in messages:
+#             message_id = message["id"]
+
+#             # Skip if already processed
+#             if message_id in processed_ids:
+#                 continue
+
+#             message_res = await client.get(
+#                 f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}?format=full",
+#                 headers={"Authorization": f"Bearer {access_token}"}
+#             )
+#             message_json = message_res.json()
+#             payload = message_json.get("payload", {})
+#             headers = payload.get("headers", [])
+#             subject = next((h["value"] for h in headers if h["name"] == "Subject"), None)
+
+#             # Extract plain text body
+#             body = ""
+#             if "parts" in payload:
+#                 for part in payload["parts"]:
+#                     if part.get("mimeType") == "text/plain":
+#                         body_data = part.get("body", {}).get("data")
+#                         if body_data:
+#                             body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
+#                             break
+#             else:
+#                 body_data = payload.get("body", {}).get("data")
+#                 if body_data:
+#                     body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
+
+#             # Use /deadline logic to extract deadline
+#             body_input = BodyInput(body=body)
+
+#             deadline_response = await get_deadline(body_input)
+
+#             # Now handle the deadline_response directly as a dictionary
+#             if isinstance(deadline_response, dict):
+#                 raw_response = deadline_response.get("deadline", "")
+#             else:
+#                 raw_response = ""
+
+#             if not raw_response:
+#                 print("No deadline returned from agent.")
+#                 continue  # Skip this email and move to the next one
+
+            
+    
+            
+#             # cleaned = raw_response.strip("` \n")  # Remove triple backticks and whitespace
+#             # if cleaned.startswith("json"):
+#             #     cleaned = cleaned[len("json"):].strip()
+
+#             # try:
+#             #     event_info = json.loads(cleaned)
+#             #     print("event_info",event_info)
+#             # except json.JSONDecodeError as e:
+#             #     print(f"Skipping email due to JSON decode error: {e}")
+#             #     continue
+
+#             # deadline = raw_respons.get("Deadline", "").strip()
+#             deadline=raw_response
+#             if not deadline:
+#                 continue
+
+#             try:
+#                 # deadline = deadline.strip().replace(" ", "T")
+#                 # parsed_deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%S")
+#                 parsed_deadline=deadline
+#                 end_time = (parsed_deadline + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
+#                 print("times:",parsed_deadline,end_time)
+#             except ValueError as e:
+#                 print(f"Skipping email due to deadline parsing error: {e}")
+#                 continue
+
+#             def to_rfc3339(dt_str: str) -> str:
+#                 naive = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S")
+#                 return naive.isoformat()
+
+#             event = {
+#                 "summary": event_info.get("Event Title", "Event from Email"),
+#                 "description": event_info.get("Description", "Auto-created from Gmail deadline."),
+#                 "start": {
+#                     "dateTime": to_rfc3339(deadline),
+#                     "timeZone": "Asia/Kolkata",
+#                 },
+#                 "end": {
+#                     "dateTime": to_rfc3339(end_time),
+#                     "timeZone": "Asia/Kolkata",
+#                 },
+#                 "reminders": {
+#                     "useDefault": False,
+#                     "overrides": [
+#                         {"method": "popup", "minutes": 60}
+#                     ]
+#                 }
+#             }
+
+#             # Create the event
+#             print(event)
+#             res = await client.post(
+#                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+#                 headers={
+#                     "Authorization": f"Bearer {access_token}",
+#                     "Content-Type": "application/json"
+#                 },
+#                 json=event
+#             )
+
+#             if res.status_code in (200, 201):
+#                 # Store processed ID to prevent duplicates
+#                 processed_ids.add(message_id)
+#                 emails.append({"id": message_id, "status": "created"})
+#             else:
+#                 emails.append({"id": message_id, "status": "failed", "error": res.text})
+
+#     return {"success": True, "processed": emails}
 processed_ids = set()
+
 @app.post('/createEvents')
 async def createEvents(request: Request):
     data = await request.json()
     access_token = data.get("access_token")
-    
+
     if not access_token:
         return {"success": False, "error": "Access token missing"}
 
-    # Fetch the last 5 emails using the get_emails logic
     emails = []
 
     async with httpx.AsyncClient() as client:
         email_res = await client.get(
-            f"https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5",
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5",
             headers={"Authorization": f"Bearer {access_token}"}
         )
         messages = email_res.json().get("messages", [])
@@ -565,7 +702,6 @@ async def createEvents(request: Request):
         for message in messages:
             message_id = message["id"]
 
-            # Skip if already processed
             if message_id in processed_ids:
                 continue
 
@@ -578,7 +714,6 @@ async def createEvents(request: Request):
             headers = payload.get("headers", [])
             subject = next((h["value"] for h in headers if h["name"] == "Subject"), None)
 
-            # Extract plain text body
             body = ""
             if "parts" in payload:
                 for part in payload["parts"]:
@@ -592,48 +727,35 @@ async def createEvents(request: Request):
                 if body_data:
                     body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
 
-            # Use /deadline logic to extract deadline
             body_input = BodyInput(body=body)
-
             deadline_response = await get_deadline(body_input)
 
-            # Now handle the deadline_response directly as a dictionary
             if isinstance(deadline_response, dict):
                 raw_response = deadline_response.get("deadline", "")
+                event_info = deadline_response
             else:
-                raw_response = ""
-
-            cleaned = raw_response.strip("` \n")  # Remove triple backticks and whitespace
-            if cleaned.startswith("json"):
-                cleaned = cleaned[len("json"):].strip()
-
-            try:
-                event_info = json.loads(cleaned)
-            except json.JSONDecodeError as e:
-                print(f"Skipping email due to JSON decode error: {e}")
                 continue
 
-            deadline = event_info.get("Deadline", "").strip()
-            if not deadline:
+            if not raw_response:
+                print("No deadline returned from agent.")
                 continue
 
             try:
-                deadline = deadline.strip().replace(" ", "T")
-                parsed_deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%S")
+                # ✅ Parse deadline string into datetime
+                parsed_deadline = datetime.strptime(raw_response, "%Y-%m-%dT%H:%M:%S")
                 end_time = (parsed_deadline + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
             except ValueError as e:
                 print(f"Skipping email due to deadline parsing error: {e}")
                 continue
 
             def to_rfc3339(dt_str: str) -> str:
-                naive = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S")
-                return naive.isoformat()
+                return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S").isoformat()
 
             event = {
                 "summary": event_info.get("Event Title", "Event from Email"),
                 "description": event_info.get("Description", "Auto-created from Gmail deadline."),
                 "start": {
-                    "dateTime": to_rfc3339(deadline),
+                    "dateTime": to_rfc3339(raw_response),
                     "timeZone": "Asia/Kolkata",
                 },
                 "end": {
@@ -648,8 +770,8 @@ async def createEvents(request: Request):
                 }
             }
 
-            # Create the event
             print(event)
+
             res = await client.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",
                 headers={
@@ -660,7 +782,6 @@ async def createEvents(request: Request):
             )
 
             if res.status_code in (200, 201):
-                # Store processed ID to prevent duplicates
                 processed_ids.add(message_id)
                 emails.append({"id": message_id, "status": "created"})
             else:
