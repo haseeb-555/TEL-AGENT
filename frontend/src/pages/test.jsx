@@ -33,11 +33,14 @@ const TestPage = () => {
         });
 
         const data = await res.json();
+        console.log("Data extracted when 1st time login\n")
+        console.log(data)
         if (data && data.access_token) {
           localStorage.setItem("user_name", data.name);
           localStorage.setItem("user_email", data.email);
           localStorage.setItem("access_token", data.access_token);
-          setUser({ name: data.name, email: data.email, token: data.access_token });
+          localStorage.setItem("refresh_token", data.refresh_token);
+          setUser({ name: data.name, email: data.email, token: data.access_token ,refreshToken: data.refresh_token});
         }
       } catch (err) {
         console.error("Login failed:", err);
@@ -56,10 +59,11 @@ const TestPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_token: user.token,
+          refresh_token: localStorage.getItem("refresh_token"),
           count: emailCount
         }),
       });
+      
 
       const data = await res.json();
       setEmails(data.emails || []);
@@ -83,9 +87,8 @@ const TestPage = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_token: user.token,
-          body: eventData.body || "Dear All,\n\nMicrosoft is visiting our campus to hire pre-final year students for Internship roles.\n\nCourses Allowed: B.Tech.- CSE, ECE, EE\n\nProfile: Software Engineering Intern [ Job ID: 1735688 ]\n\nStipend: INR 125,000 per month\n\nProvision of PPO: Yes [Based on performance and Business requirements]\n\nEligibility: 7 CPI and above with no active backlogs.\n\nLocation: Bangalore, Hyderabad or Noida\n\nProcess Details: Pre-Placement Talk >> Resume Based Shortlisting >> Tests >> Interviews\n\nStudents are required to register on the following links before 19th April 2025 [Saturday] - 10:30 PM\n\nInstitute Link\nCompany Link\n\nNote:\n1) Deadline has to be strictly followed. Late registration will not be entertained.\n2) Once registered candidates must follow the entire company process.\n3) Candidates have to fill in the complete college name in the company registration form.\n\n--\nRegards,\nTeam TPO."
-        }),
+          refresh_token: localStorage.getItem("refresh_token"),
+          }),
       });
 
       const data = await res.json();
