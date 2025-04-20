@@ -135,7 +135,9 @@ async def call_agent_async(query: str, runner, app_name: str, session_id: str):
             print("Converted data:", converted_data)
 
             return {
-                'deadline': converted_data.get('deadline', 'No deadline available')
+                'deadline': converted_data.get('deadline', 'No deadline available'),
+                'event_name':converted_data.get('event','no event'),
+                'description':converted_data.get('description','no description')
             }
 
     return {
@@ -200,6 +202,8 @@ async def get_deadline(body_input: BodyInput):
         # Call the agent asynchronously to process the query
         agent_res = await call_agent_async(body, runner, APP_NAME, session_id)
         deadline = agent_res['deadline']
+        # event_name = agent_res['event_name']
+        # description = agent_res['description']
         print("deadline we got is", deadline)
 
         return agent_res
@@ -393,20 +397,21 @@ async def createEvents(request: Request):
                     body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
 
             body_input = BodyInput(body=body)
-            deadline_response = await get_deadline(body_input)
+            response = await get_deadline(body_input)
 
-            if isinstance(deadline_response, dict) and "deadline" in deadline_response:
-                raw_response = deadline_response.get("deadline", "")
-                event_info = deadline_response
+            if isinstance(response, dict):
+                deadline = response.get("deadline", "")
+                event_name = response.get("event_name", "")
+                description = response.get("description", "")
             else:
                 continue
 
-            if not raw_response:
+            if not response:
                 print("No deadline returned from agent.")
                 continue
 
             try:
-                parsed_deadline = datetime.strptime(raw_response, "%Y-%m-%dT%H:%M:%S")
+                parsed_deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M:%S")
                 end_time = (parsed_deadline + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
             except ValueError as e:
                 print(f"Skipping email due to deadline parsing error: {e}")
@@ -416,10 +421,10 @@ async def createEvents(request: Request):
                 return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S").isoformat()
 
             event = {
-                "summary": event_info.get("event", "Event from Email"),
-                "description": event_info.get("description", "Auto-created from Gmail deadline."),
+                "summary": event_name,
+                "description": description,
                 "start": {
-                    "dateTime": to_rfc3339(raw_response),
+                    "dateTime": to_rfc3339(deadline),
                     "timeZone": "Asia/Kolkata",
                 },
                 "end": {

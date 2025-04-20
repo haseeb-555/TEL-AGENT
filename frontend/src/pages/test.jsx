@@ -34,7 +34,7 @@ const TestPage = () => {
 
         const data = await res.json();
         console.log("Data extracted when 1st time login\n")
-        console.log(data)
+        //console.log(data)
         if (data && data.access_token) {
           localStorage.setItem("user_name", data.name);
           localStorage.setItem("user_email", data.email);
