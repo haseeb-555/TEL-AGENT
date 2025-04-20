@@ -1,19 +1,20 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import TestPage from './pages/test';
 
-function App() {
-  const [count, setCount] = useState(0)
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  return (
-    <>
-     
-      <div>
-        <h1>Hello !! This is our agentic web application</h1>
-      </div>
-    </>
-  )
-}
+const App = () => (
+  <GoogleOAuthProvider clientId={clientId}>
+    <Router>
+      <Routes>
+        <Route path="/test" element={<TestPage />} />
+        {/* You can add more routes here like home, dashboard, etc */}
+      </Routes>
+    </Router>
+  </GoogleOAuthProvider>
+);
 
-export default App
+export default App;
