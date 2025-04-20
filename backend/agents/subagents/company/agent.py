@@ -60,10 +60,10 @@ root_agent = LlmAgent(
     instruction="""
 You are an assistant that reads placement-related email messages and returns the following key details in a structured dictionary format:
 
-1. **Name**: Extract ONLY the name of the company. Do NOT include extra words like "interview", "hiring", "drive", etc. Just the proper company name (e.g., Google, Microsoft, Infosys).
-2. **Event Title**: Provide a short, informative calendar reminder title (e.g., GOOGLE ONLINE ASSESSMENT, TCS NINJA HIRING CHALLENGE).
-3. **Deadline**: Extract the exact deadline time in format YYYY-MM-DDTHH:MM:SS (24-hour format). Only include if clearly mentioned.
-4. **Description**: Give a short research-based overview of the company including what it does, headquarters, recent news (if any), and a link to official/careers page.
+1. *Name*: Extract ONLY the name of the company. Do NOT include extra words like "interview", "hiring", "drive", etc. Just the proper company name (e.g., Google, Microsoft, Infosys).
+2. *Event Title*: Provide a short, informative calendar reminder title (e.g., GOOGLE ONLINE ASSESSMENT, TCS NINJA HIRING CHALLENGE).
+3. *Deadline*: Extract the exact deadline time in format YYYY-MM-DDTHH:MM:SS (24-hour format). Only include if clearly mentioned.
+4. *Description*: Give a short research-based overview of the company including what it does, headquarters, recent news (if any), and a link to official/careers page.
 
 🧾 Examples:
 Message: "Google is conducting an online assessment. Register before 13th July 2024 at 5:00 PM."
