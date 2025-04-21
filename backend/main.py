@@ -281,8 +281,13 @@ async def get_emails(request: Request):
         emails = []
 
         email_res = await client.get(
-            f"https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults={count}",
-            headers={"Authorization": f"Bearer {access_token}"}
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+            headers={"Authorization": f"Bearer {access_token}"},
+            params={
+                "maxResults": count,
+                "labelIds": "INBOX",
+                "q": "is:inbox -from:me"
+            }
         )
 
         messages = email_res.json().get("messages", [])
@@ -371,6 +376,7 @@ async def createEvents(request: Request):
                 continue
 
             processed_ids.add(message_id)
+            
 
             message_res = await client.get(
                 f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}?format=full",
@@ -382,6 +388,7 @@ async def createEvents(request: Request):
             headers = payload.get("headers", [])
             subject = next((h["value"] for h in headers if h["name"] == "Subject"), None)
 
+            
             # Extract body
             body = ""
             if "parts" in payload:
@@ -400,14 +407,15 @@ async def createEvents(request: Request):
             response = await get_deadline(body_input)
 
             if isinstance(response, dict):
-                deadline = response.get("deadline", "")
-                event_name = response.get("event_name", "")
+                deadline = response.get("deadline")
+                event_name = response.get("event_name", "No Title")
                 description = response.get("description", "")
             else:
+                print("Agent response is not a dict, skipping.")
                 continue
 
-            if not response:
-                print("No deadline returned from agent.")
+            if not deadline:
+                print(f"No deadline returned for message ID {message_id}, skipping.")
                 continue
 
             try:

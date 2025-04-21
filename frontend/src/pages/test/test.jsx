@@ -1,22 +1,54 @@
 // src/pages/TestPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import EventForm from '../EventForm'; // adjust path if needed
+import EventForm from '/Users/manvithreddyreddem/Documents/GitHub/TEL-AGENT/frontend/src/components/EventForm.jsx';
+import './test.css'
 
 const TestPage = () => {
   const [user, setUser] = useState(null);
   const [emailCount, setEmailCount] = useState('');
   const [emails, setEmails] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
+
 
   useEffect(() => {
     const name = localStorage.getItem("user_name");
     const email = localStorage.getItem("user_email");
     const token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
     if (name && email && token) {
-      setUser({ name, email, token });
+      setUser({ name, email, token,refreshToken  });
+      
     }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+  
+    const interval = setInterval(() => {
+      console.log("⏳ Triggering /createEvents every 5 minutes...");
+      fetch("http://localhost:8000/createEvents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          refresh_token: localStorage.getItem("refresh_token"),
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log("✅ Events created automatically!");
+          } else {
+            console.error("❌ Event creation failed in interval:", data);
+          }
+        })
+        .catch(err => console.error("⚠️ Error in interval fetch:", err));
+    }, 5 * 60 * 1000); 
+  
+    return () => clearInterval(interval); 
+  }, [user]);
+  
 
   const login = useGoogleLogin({
     flow: 'auth-code',
@@ -53,7 +85,7 @@ const TestPage = () => {
 
   const fetchEmails = async () => {
     if (!emailCount || emailCount <= 0) return alert("Reyy donkey 😤 enter valid number!");
-    setLoading(true);
+    setFetchLoading(true);
     try {
       const res = await fetch("http://localhost:8000/getemails", {
         method: "POST",
@@ -70,7 +102,7 @@ const TestPage = () => {
     } catch (err) {
       console.error("Failed to fetch emails:", err);
     } finally {
-      setLoading(false);
+      setFetchLoading(false);
     }
   };
 
@@ -81,7 +113,8 @@ const TestPage = () => {
     setEmailCount('');
   };
 
-  const handleCreateEvent = async (eventData) => {
+  const handleCreateEvent = async () => {
+    setCreateLoading(true);
     try {
       const res = await fetch("http://localhost:8000/createEvents", {
         method: "POST",
@@ -100,7 +133,10 @@ const TestPage = () => {
       }
     } catch (err) {
       console.error("Error creating event:", err);
+    }finally{
+      setCreateLoading(false);
     }
+    
   };
 
   return (
@@ -127,20 +163,58 @@ const TestPage = () => {
                 style={{ padding: "5px", marginRight: "10px" }}
               />
             </label>
-            <button onClick={fetchEmails} style={{ backgroundColor: "#27ae60", color: "white", padding: "10px", borderRadius: "5px" }}>
+            {/* <button onClick={fetchEmails} style={{ backgroundColor: "#27ae60", color: "white", padding: "10px", borderRadius: "5px" }}>
               Fetch now 🚀
-            </button>
+            </button> */}
+            <button
+  onClick={fetchEmails}
+  style={{
+    backgroundColor: "#2980b9",
+    color: "white",
+    padding: "10px",
+    borderRadius: "5px",
+    cursor: fetchLoading ? "not-allowed" : "pointer",
+    opacity: fetchLoading ? 0.6 : 1,
+    marginLeft: "10px"
+  }}
+  disabled={fetchLoading}
+>
+  {fetchLoading ? (
+    <>
+      <span className="spinner" /> Fetching...
+    </>
+  ) : (
+    "Fetch Now 🚀"
+  )}
+</button>
           </div>
 
           <div>
-            <button onClick={handleCreateEvent} style={{ backgroundColor: "#27ae60", color: "white", padding: "10px", borderRadius: "5px" }}>
-              Create Event from body
-            </button>
+          <button
+              onClick={handleCreateEvent}
+              style={{
+                backgroundColor: "#27ae60",
+                color: "white",
+                padding: "10px",
+                borderRadius: "5px",
+                cursor: createLoading ? "not-allowed" : "pointer",
+                opacity: createLoading ? 0.6 : 1,
+              }}
+              disabled={createLoading}
+            >
+              {createLoading ? (
+                <>
+                  <span className="spinner" /> Creating events...
+                </>
+              ) : (
+                "Create Events from emails"
+              )}
+        </button>
           </div>
 
           <EventForm onSubmit={handleCreateEvent} />
 
-          {loading && <p>Hold on donkey 🫏... Fetching your emails 📨</p>}
+          {fetchLoading && <p>Hold on donkey 🫏... Fetching your emails 📨</p>}
 
           {emails.length > 0 && (
             <div style={{ marginTop: "20px" }}>
