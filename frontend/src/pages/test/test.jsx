@@ -1,7 +1,7 @@
 // src/pages/TestPage.jsx
 import React, { useEffect, useState } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import EventForm from '/Users/manvithreddyreddem/Documents/GitHub/TEL-AGENT/frontend/src/components/EventForm.jsx';
+import EventForm from '../../components/EventForm';
 import './test.css'
 
 const TestPage = () => {

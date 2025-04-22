@@ -1,0 +1,18 @@
+/* App.css */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to bottom right, #f0f9ff, #fdf2f8); /* light blue to pink */
+    color: #1f2937; /* gray-800 */
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  

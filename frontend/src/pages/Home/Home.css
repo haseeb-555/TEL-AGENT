@@ -1,0 +1,29 @@
+/* Home.css */
+
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #bfdbfe, #d8b4fe); /* soft blue to purple */
+    color: #1f2937; /* gray-800 */
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .home-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+  
+  .home-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .google-login-wrapper {
+    margin-top: 1.5rem;
+  }
+  
