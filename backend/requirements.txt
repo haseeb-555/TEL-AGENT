@@ -44,7 +44,6 @@ httpx-sse==0.4.0
 idna==3.10
 importlib_metadata==8.6.1
 mcp==1.6.0
-motor==3.7.0
 numpy==2.0.2
 opentelemetry-api==1.32.1
 opentelemetry-exporter-gcp-trace==1.9.0
@@ -58,7 +57,7 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
 pydantic==2.11.3
-pydantic-settings==2.9.0
+pydantic-settings==2.9.1
 pydantic_core==2.33.1
 pymongo==4.12.0
 pyparsing==3.2.3

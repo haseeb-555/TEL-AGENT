@@ -8,7 +8,8 @@ import httpx,os
 from dotenv import load_dotenv
 from config.config import GOOGLE_TOKEN_URL, GMAIL_API_BASE, USERINFO_URL, BodyInput
 from datetime import datetime, timedelta
-from routes.agents import get_deadline
+# from routes.agents import get_deadline
+from routes.agents import extract_deadline_from_body
 from utils.processed_ids import load_processed_ids, save_processed_ids
 import base64
 load_dotenv()
@@ -94,7 +95,7 @@ async def createEvents(request: Request):
                     body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
 
             body_input = BodyInput(body=body)
-            response = await get_deadline(body_input)
+            response = await extract_deadline_from_body(body_input.body)
 
             if isinstance(response, dict):
                 deadline = response.get("deadline")

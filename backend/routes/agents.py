@@ -146,35 +146,62 @@ async def websocket_endpoint(websocket: WebSocket, session_id: int):
     # Disconnected
     print(f"Client #{session_id} disconnected")
 
-@agent_router.post('/deadline')
-async def get_deadline(body_input: BodyInput):
-    try:
-        body = body_input.body
+# @agent_router.post('/deadline')
+# async def get_deadline(body_input: BodyInput):
+#     try:
+#         body = body_input.body
 
-        # Generate a random session_id
-        session_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-        #print(f"Generated session_id: {session_id}")
+#         # Generate a random session_id
+#         session_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+#         #print(f"Generated session_id: {session_id}")
 
-        # Start agent session
-        session = start_agent_session(session_id)
-        if not session:
-            return JSONResponse(status_code=400, content={"error": f"Session creation failed for session_id {session_id}"})
+#         # Start agent session
+#         session = start_agent_session(session_id)
+#         if not session:
+#             return JSONResponse(status_code=400, content={"error": f"Session creation failed for session_id {session_id}"})
 
-        # Create a Runner
-        runner = Runner(
-            agent=root_agent,  # Assuming root_agent is defined
-            app_name=APP_NAME,
-            session_service=session_service
-        )
+#         # Create a Runner
+#         runner = Runner(
+#             agent=root_agent,  # Assuming root_agent is defined
+#             app_name=APP_NAME,
+#             session_service=session_service
+#         )
 
-        # Call the agent asynchronously to process the query
-        agent_res = await call_agent_async(body, runner, APP_NAME, session_id)
-        deadline = agent_res['deadline']
-        # event_name = agent_res['event_name']
+#         # Call the agent asynchronously to process the query
+#         agent_res = await call_agent_async(body, runner, APP_NAME, session_id)
+#         deadline = agent_res['deadline']
+#         # event_name = agent_res['event_name']
+#         # description = agent_res['description']
+#         print("deadline we got is", deadline)
+
+#         return agent_res
+
+#     except Exception as e:
+#         return JSONResponse(status_code=400, content={"error": str(e)})
+
+
+import random, string, json
+from config.config import BodyInput
+
+async def extract_deadline_from_body(body: str) -> dict:
+    session_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    session = start_agent_session(session_id)
+
+    if not session:
+        return {"error": f"Session creation failed for session_id {session_id}"}
+
+    runner = Runner(
+        agent=root_agent,
+        app_name=APP_NAME,
+        session_service=session_service
+    )
+
+    agent_res = await call_agent_async(body, runner, APP_NAME, session_id)
+    
+    deadline = agent_res['deadline']
         # description = agent_res['description']
-        print("deadline we got is", deadline)
+    print("deadline we got is", deadline)
 
-        return agent_res
+    return agent_res
 
-    except Exception as e:
-        return JSONResponse(status_code=400, content={"error": str(e)})
+   
