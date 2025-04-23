@@ -1,8 +1,3 @@
-/venv
-/backend/.env
-__pycache__/
-**/__pycache__/
-.venv/
 
 source venv/bin/activate 
 
@@ -11,3 +6,25 @@ uvicorn main:app --reload
 npm run dev
 __pycache__/
 *.pyc
+
+
+# Python
+*.pyc
+__pycache__/
+**/__pycache__/
+
+# Virtual environments
+.venv/
+venv/
+backend/venv/
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
+
+# Node modules
+node_modules/
+
+# OS/System files
+.DS_Store
