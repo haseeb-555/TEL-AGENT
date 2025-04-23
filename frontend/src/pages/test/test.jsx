@@ -13,15 +13,18 @@ const TestPage = () => {
 
 
   useEffect(() => {
-    const name = localStorage.getItem("user_name");
-    const email = localStorage.getItem("user_email");
-    const token = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (name && email && token) {
-      setUser({ name, email, token,refreshToken  });
-      
-    }
+    const interval = setInterval(() => {
+      const name = localStorage.getItem("user_name");
+      const email = localStorage.getItem("user_email");
+      const token = localStorage.getItem("access_token");
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (name && email && token) {
+        setUser({ name, email, token, refreshToken });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
+  
 
   useEffect(() => {
     if (!user) return;
@@ -65,13 +68,14 @@ const TestPage = () => {
         });
 
         const data = await res.json();
-        console.log("Data extracted when 1st time login\n")
+        //console.log("Data extracted when 1st time login\n")
         //console.log(data)
         if (data && data.access_token) {
           localStorage.setItem("user_name", data.name);
           localStorage.setItem("user_email", data.email);
           localStorage.setItem("access_token", data.access_token);
           localStorage.setItem("refresh_token", data.refresh_token);
+
           setUser({ name: data.name, email: data.email, token: data.access_token ,refreshToken: data.refresh_token});
         }
       } catch (err) {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-//import '../../App.css';
 import "./Home.css"; 
 
 
@@ -10,7 +9,6 @@ const Home = () => {
 
   const handleLoginSuccess = (credentialResponse) => {
     console.log('Login Success:', credentialResponse);
-    // Navigate or show dashboard after login
     navigate('/test');
   };
 

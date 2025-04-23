@@ -4,4 +4,10 @@ __pycache__/
 **/__pycache__/
 .venv/
 
-#source venv/bin/activate 
+source venv/bin/activate 
+
+uvicorn main:app --reload  
+
+npm run dev
+__pycache__/
+*.pyc
