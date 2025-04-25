@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classify Emails</title>
+    <script>
+      // Function to classify emails
+      async function classifyEmail(emailId) {
+        const response = await fetch(`/classify_email/${emailId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email_id: emailId }),
+        });
+
+        const result = await response.json();
+        alert(`Email classified as: ${result.classification}`);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Emails</h1>
+    <ul id="emails-list">
+      <!-- Emails will be populated here dynamically -->
+    </ul>
+
+    <script>
+      // Fetch emails from the backend
+      async function fetchEmails() {
+        const response = await fetch("/getemails");
+        const result = await response.json();
+
+        const emailsList = document.getElementById("emails-list");
+        result.emails.forEach((email) => {
+          const li = document.createElement("li");
+          li.textContent = `${email.subject}: ${email.snippet}`;
+          const classifyButton = document.createElement("button");
+          classifyButton.textContent = "Classify";
+          classifyButton.onclick = () => classifyEmail(email.id);
+          li.appendChild(classifyButton);
+          emailsList.appendChild(li);
+        });
+      }
+
+      fetchEmails(); // Fetch and display emails when the page loads
+    </script>
+  </body>
+</html>

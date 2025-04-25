@@ -1,0 +1,61 @@
+🚫 Known Limitation: Tool Use with Function Calling in Google GenAI (via Google ADK)
+❗ Issue Summary
+Your application, which integrates Google ADK (Agent Development Kit) with Google GenAI models, is currently encountering the following error:
+
+makefile
+Copy
+Edit
+google.genai.errors.ClientError: 400 INVALID_ARGUMENT
+"Tool use with function calling is unsupported"
+This occurs when the agent (e.g., company_root_agent, chat_bot_root) tries to utilize tools or function calling capabilities that are not supported by the GenAI model in the current setup.
+
+🔍 Root Cause Analysis
+1. Tool or Function Use in Agents
+Your agent configuration (e.g., in agents/subagents/company/agent.py or chatbot/agent.py) likely defines tools or functions that the LLM is expected to use during runtime.
+
+The current GenAI model accessed through ADK does not support tool invocation or function calling, leading to this error.
+
+💡 Note: This limitation is specific to the model version/config currently supported by Google ADK.
+
+✅ Workarounds and Recommendations
+🛠️ A. Remove or Disable Tool Use
+If your agent logic can function without tool integration, simply remove any tool-related configs.
+
+Look for definitions such as tools, function_calls, or tool_specs in your agent code.
+
+🔁 B. Use Backend Orchestration Instead
+Let the LLM generate structured instructions or outputs (e.g., JSON).
+
+Then, handle tool execution externally in your FastAPI backend based on the LLM's output.
+
+Example: Let the agent return "Search for top tech articles" and your backend runs a google_search() function.
+
+🔄 C. Monitor Model Support
+This feature may become available as Google ADK and GenAI models evolve.
+
+Keep track of library updates and supported capabilities [on the official GitHub/Docs].
+
+🔧 Developer Notes
+Check the following files for function/tool use:
+
+agents/subagents/company/agent.py
+
+agents/subagents/chatbot/agent.py
+
+Pay attention to how your agents are instantiated:
+
+python
+Copy
+Edit
+llm_agent = LlmAgent(
+    tools=[...],  # 🚫 Not supported currently
+    ...
+)
+Also ensure Runner or workflow definitions do not expect tool chaining that triggers this error.
+
+🧠 Final Tip
+Since you're using FastAPI + Flask with Google ADK, you already have a powerful backend stack. You can simulate tool use with:
+
+LLM text outputs (commands/instructions)
+
+Backend tool invocation (post-processing based on LLM output)

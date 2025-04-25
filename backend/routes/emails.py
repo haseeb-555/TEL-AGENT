@@ -7,13 +7,50 @@ import httpx,os
 from dotenv import load_dotenv
 from config.config import GOOGLE_TOKEN_URL, GMAIL_API_BASE, USERINFO_URL
 import base64
+from google.genai.types import Part, Content
+from google.adk.runners import Runner
+from google.adk.agents import LiveRequestQueue
+from google.adk.agents.run_config import RunConfig
+from google.adk.sessions.in_memory_session_service import InMemorySessionService
+from agents.subagents.company.agent import root_agent
+from agents.subagents.chatbot.agent import chat_bot_root
+from agents.subagents.classifier.agent import classifier_root
+
+
+from google.genai import types
+import os,asyncio
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+import random, string, json
+from config.config import BodyInput
+from pydantic import BaseModel
+
+
 load_dotenv()
+
+
+
+
+# Define a Pydantic model for email request
+class ClassifyEmailRequest(BaseModel):
+    email_id: str
+
+
+email_router = APIRouter()
+
 
 client_id = os.getenv("GOOGLE_CLIENT_ID")
 client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
 redirect_uri = os.getenv("REDIRECT_URI")
 
-email_router = APIRouter()
+APP_NAME = "email_application_agent"
+session_service = InMemorySessionService()
+
+agent_router = APIRouter()
+
+
+STATIC_DIR = Path("static")
+agent_router.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @email_router.post('/getemails')
@@ -90,4 +127,41 @@ async def get_emails(request: Request):
 
     return {"emails": emails}
 
+
+
+
+
+
+async def create_session_runner(main_agent):
+    session_id = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    session = session_service.create_session(app_name=APP_NAME, user_id=session_id, session_id=session_id)
+    runner = Runner(app_name=APP_NAME, agent=main_agent, session_service=session_service)
+    return runner, session_id
+
+async def classify_email_content(body: str, runner, session_id: str):
+    content = Content(role='user', parts=[Part(text=body)])
+
+    async for event in runner.run_async(user_id=session_id, session_id=session_id, new_message=content):
+        if event.is_final_response():
+            session = session_service.get_session(app_name=APP_NAME, user_id=session_id, session_id=session_id)
+            print(f"State after agent run: {session.state}")
+            return session.state["mail_class"]
+            
+            
+            
+    
+    
+
+@email_router.post("/classify_email/{email_id}")
+async def classify_email(email_id: str, request: ClassifyEmailRequest):
+    # Retrieve email body by email_id (You need to implement this part)
+    email_body = "Sample email body for classification"  # Placeholder, retrieve actual email body from DB
+    
+    # Create a session runner for the classifier
+    runner, session_id = await create_session_runner(classifier_root)
+
+    # Classify the email content
+    classification = await classify_email_content(email_body, runner, session_id)
+
+    return {"classification": classification}
 

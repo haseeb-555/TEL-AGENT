@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100 text-gray-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <div class="bg-white shadow-xl rounded-2xl p-6 w-full max-w-lg">
+      <h1 class="text-2xl font-bold mb-4">Chat with our Bot</h1>
+
+      <div
+        id="chat-box"
+        class="h-64 overflow-y-auto border rounded-lg p-3 mb-4 bg-gray-50"
+      >
+        <p class="text-gray-400 text-sm">Start the conversation below ⬇️</p>
+      </div>
+
+      <form id="chat-form" class="flex">
+        <input
+          type="text"
+          id="user-input"
+          class="flex-grow border border-gray-300 rounded-l-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          placeholder="Type your message..."
+          required
+        />
+        <button
+          type="submit"
+          class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600"
+        >
+          Send
+        </button>
+      </form>
+    </div>
+
+    <script>
+      const form = document.getElementById("chat-form");
+      const input = document.getElementById("user-input");
+      const chatBox = document.getElementById("chat-box");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const userMessage = input.value;
+        appendMessage("You", userMessage);
+
+        input.value = "";
+
+        const response = await fetch("/chatbot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: userMessage }),
+        });
+
+        const data = await response.json();
+        const reply = data.reply || "No response received.";
+        appendMessage("Bot", reply);
+      });
+
+      function appendMessage(sender, message) {
+        const messageElement = document.createElement("p");
+        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+        messageElement.className = "mb-2";
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    </script>
+  </body>
+</html>
