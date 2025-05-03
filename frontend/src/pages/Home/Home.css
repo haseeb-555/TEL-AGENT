@@ -23,7 +23,64 @@
     margin-bottom: 1.5rem;
   }
   
-  .google-login-wrapper {
-    margin-top: 1.5rem;
+  .google-login-wrapper button {
+    background-color: #6366f1; /* Indigo-500 */
+    color: white;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .google-login-wrapper button:hover {
+    background-color: #4f46e5; /* Darker indigo */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+  
+  .google-login-wrapper button:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .google-signin-btn {
+    padding: 12px;
+    font-size: 16px;
+    background-color: #3498db; /* blue */
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .google-signin-btn.loading {
+    background-color: #95a5a6; /* gray */
+    cursor: not-allowed;
+  }
+  
+  .google-signin-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .google-signin-btn:active {
+    transform: scale(0.98);
+  }
+  
+  
+  .auth-button {
+    padding: 12px;
+    font-size: 16px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .auth-button.logout {
+    background-color: #e74c3c;
   }
   

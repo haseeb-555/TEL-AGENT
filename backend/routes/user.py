@@ -33,6 +33,17 @@ async def create_user(user: User):
     new_user = users.find_one({"_id": result.inserted_id})
     return individual_serial(new_user)
 
+@user_router.post("/update")
+async def update_user(request: Request):
+    data = await request.json()
+    email = data.get("email")
+    
+
+    users.update_one({"email": email}, {"$set": {"refresh_token": data.get("refresh_token"),"access_token": data.get("access_token")}})
+
+    updated_user = users.find_one({"email": email})
+    return individual_serial(updated_user)
+
 
 @user_router.post("/userinfo")
 async def get_userinfo(request: Request):
@@ -71,9 +82,21 @@ async def get_userinfo(request: Request):
         )
         name = userinfo_res.json().get("name")
 
+        user = users.find_one({"email": email})
+
+        if user:
+            users.update_one({"email": email}, {"$set": {"refresh_token": refresh_token,"access_token": access_token}})
+        else:
+            new_user = User(
+                name=name,
+                email=email,
+                access_token=access_token,
+                refresh_token=refresh_token
+            )
+            users.insert_one(new_user.dict())
+
+
         return {
-            "access_token": access_token,
-            "refresh_token": refresh_token, 
             "email": email,
             "name": name,
         }

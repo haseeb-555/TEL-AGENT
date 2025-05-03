@@ -8,9 +8,7 @@ import httpx,os
 from dotenv import load_dotenv
 from config.config import GOOGLE_TOKEN_URL, GMAIL_API_BASE, USERINFO_URL, BodyInput
 from datetime import datetime, timedelta
-# from routes.agents import get_deadline
 from routes.agents import extract_deadline_from_body
-from utils.processed_ids import load_processed_ids, save_processed_ids
 import base64
 load_dotenv()
 
@@ -21,30 +19,19 @@ redirect_uri = os.getenv("REDIRECT_URI")
 
 event_router = APIRouter()
 
-processed_ids = load_processed_ids()
 
 @event_router.post('/createEvents')
 async def createEvents(request: Request):
     data = await request.json()
-    refresh_token = data.get("refresh_token")
+    email = data.get("email")
 
-    if not refresh_token:
-        return {"success": False, "error": "Refresh token missing"}
+    user = users.find_one({"email": email})
 
-    token_payload = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "refresh_token": refresh_token,
-        "grant_type": "refresh_token"
-    }
+    refresh_token = user.get("refresh_token")
+    access_token = user.get("access_token")
+
 
     async with httpx.AsyncClient() as client:
-        token_res = await client.post(GOOGLE_TOKEN_URL, data=token_payload)
-        token_data = token_res.json()
-        access_token = token_data.get("access_token")
-
-        if not access_token:
-            return {"success": False, "error": "Failed to refresh access token", "details": token_data}
 
         emails = []
 
@@ -58,15 +45,44 @@ async def createEvents(request: Request):
             }
         )
 
+        if email_res.status_code == 401:
+
+            token_payload = {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token"
+            }
+
+            token_res = await client.post(GOOGLE_TOKEN_URL, data=token_payload)
+            token_data = token_res.json()
+            access_token = token_data.get("access_token")
+
+            if not access_token:
+                return {"success": False, "error": "Failed to refresh access token", "details": token_data}
+
+            users.update_one({"email": email}, {"$set": {"access_token": access_token}})
+            
+            email_res = await client.get(
+                "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+                headers={"Authorization": f"Bearer {access_token}"},
+                params={
+                    "maxResults": 5,
+                    "labelIds": "INBOX",
+                    "q": "is:inbox -from:me"
+                }
+            )
+
         messages = email_res.json().get("messages", [])
 
         for message in messages:
             message_id = message["id"]
+            processed_ids = user.get("processed_email_ids", [])
 
             if message_id in processed_ids:
                 continue
 
-            processed_ids.add(message_id)
+            
             
 
             message_res = await client.get(
@@ -151,6 +167,8 @@ async def createEvents(request: Request):
 
             if res.status_code in (200, 201):
                 emails.append({"id": message_id, "status": "created"})
+                processed_ids.append(message_id)
+                users.update_one({"email": email}, {"$set": {"processed_email_ids": processed_ids}})
             else:
                 emails.append({"id": message_id, "status": "failed", "error": res.text})
 
