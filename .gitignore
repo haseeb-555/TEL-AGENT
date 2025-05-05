@@ -2,7 +2,7 @@
 source venv/bin/activate 
 
 uvicorn main:app --reload  
-
+#pip freeze > requirements.txt
 npm run dev
 __pycache__/
 *.pyc

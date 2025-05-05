@@ -72,7 +72,7 @@ async def call_agent_async(query: str, runner, app_name: str, session_id: str):
                 user_id=session_id,
                 session_id=session_id
             )
-            print(f"State after agent run: {session.state}")
+            #print(f"State after agent run: {session.state}")
 
             # Clean the agent output to get the actual JSON string
             cleaned_output = (
@@ -86,7 +86,7 @@ async def call_agent_async(query: str, runner, app_name: str, session_id: str):
             # Check if the cleaned output is valid JSON
             try:
                 parsed_data = json.loads(cleaned_output)
-                print(parsed_data)
+                #print(parsed_data)
             except json.JSONDecodeError as e:
                 print(f"Skipping email due to JSON decode error: {e}")
                 return {"deadline": "No deadline extracted."}
@@ -99,7 +99,7 @@ async def call_agent_async(query: str, runner, app_name: str, session_id: str):
                 "description": parsed_data.get("Description")
             }
 
-            print("Converted data:", converted_data)
+            #print("Converted data:", converted_data)
 
             return {
                 'deadline': converted_data.get('deadline', 'No deadline available'),

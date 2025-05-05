@@ -39,7 +39,7 @@ async def createEvents(request: Request):
             "https://gmail.googleapis.com/gmail/v1/users/me/messages",
             headers={"Authorization": f"Bearer {access_token}"},
             params={
-                "maxResults": 5,
+                "maxResults": 3,
                 "labelIds": "INBOX",
                 "q": "is:inbox -from:me"
             }
@@ -154,7 +154,7 @@ async def createEvents(request: Request):
                 }
             }
 
-            print(event)
+            #print(event)
 
             res = await client.post(
                 "https://www.googleapis.com/calendar/v3/calendars/primary/events",

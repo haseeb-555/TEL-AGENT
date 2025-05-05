@@ -1,0 +1,28 @@
+/* privacy.css */
+.legal-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem 2rem;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  .legal-container h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #111;
+  }
+  
+  .legal-container h2 {
+    margin-top: 1.5rem;
+    font-size: 1.2rem;
+    color: #222;
+  }
+  
+  .legal-container p {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+  }
+  
