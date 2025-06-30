@@ -82,7 +82,8 @@ async def createEvents(request: Request):
             if message_id in processed_ids:
                 continue
 
-            
+            processed_ids.append(message_id)
+            users.update_one({"email": email}, {"$set": {"processed_email_ids": processed_ids}})
             
 
             message_res = await client.get(
@@ -167,8 +168,7 @@ async def createEvents(request: Request):
 
             if res.status_code in (200, 201):
                 emails.append({"id": message_id, "status": "created"})
-                processed_ids.append(message_id)
-                users.update_one({"email": email}, {"$set": {"processed_email_ids": processed_ids}})
+                
             else:
                 emails.append({"id": message_id, "status": "failed", "error": res.text})
 

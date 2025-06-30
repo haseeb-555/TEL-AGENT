@@ -48,8 +48,8 @@ async def get_emails(request: Request):
                 "grant_type": "refresh_token"
             }
 
-            async with httpx.AsyncClient() as client:
-                token_res = await client.post(GOOGLE_TOKEN_URL, data=token_payload)
+            
+            token_res = await client.post(GOOGLE_TOKEN_URL, data=token_payload)
                 token_data = token_res.json()
                 access_token = token_data.get("access_token")
 
