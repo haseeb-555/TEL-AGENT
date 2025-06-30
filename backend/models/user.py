@@ -7,4 +7,3 @@ class User(BaseModel):
     access_token: str
     refresh_token: str
     processed_email_ids: Optional[List[str]] = []
-    

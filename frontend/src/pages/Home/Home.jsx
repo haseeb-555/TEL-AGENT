@@ -3,6 +3,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/usercontext';
 import './Home.css';
+import StudyFacts from '../../components/StudyFacts/StudyFacts';
 
 const baseURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -10,6 +11,8 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, setUser } = useUser(); 
   const [loading, setLoading] = useState(false);
+  const [showFacts, setShowFacts] = useState(false);
+
 
   const login = useGoogleLogin({
     flow: 'auth-code',
@@ -66,22 +69,31 @@ const Home = () => {
       <h1 className="home-title">Welcome to Acadhelper</h1>
       <p className="home-subtitle">AI-powered Gmail Reminders at your fingertips</p>
       <div className="google-login-wrapper">
-        {user ? (
-          <button
-            className="auth-button logout"
-            onClick={handleLogout}
-          >
-            Sign out 😢
-          </button>
-        ) : (
-          <button
-            onClick={() => login()}
-            className={`google-signin-btn ${loading ? 'loading' : ''}`}
-            disabled={loading}
-          >
-            {loading ? 'Signing in...' : 'Sign in with Google 😎'}
-          </button>
-        )}
+      {user ? (
+  <button
+    className="auth-button logout"
+    onClick={handleLogout}
+  >
+    Sign out 😢
+  </button>
+) : (
+  <>
+    <button
+      onClick={() => {
+        setShowFacts(true);
+        login();
+      }}
+      className={`google-signin-btn ${loading ? 'loading' : ''}`}
+      disabled={loading}
+    >
+      {loading ? 'Signing in...' : 'Sign in with Google 😎'}
+    </button>
+
+    {/* Show rotating facts only while loading */}
+    {loading && <StudyFacts active={showFacts} />}
+  </>
+)}
+
       </div>
     </div>
   );
