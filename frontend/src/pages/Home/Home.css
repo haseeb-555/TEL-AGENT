@@ -84,3 +84,19 @@
     background-color: #e74c3c;
   }
   
+  .corner-button {
+    position: fixed; /* Keeps the buttons fixed in the corner */
+    top: 20px; /* Distance from the bottom */
+    right: 20px; /* Distance from the right */
+    padding: 10px 20px; /* Adds padding inside the button */
+    background-color: #007BFF; /* Button background color */
+    color: white; /* Text color */
+    border: none; /* Removes border */
+    border-radius: 5px; /* Rounds the corners */
+    cursor: pointer; /* Changes cursor to pointer on hover */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+  }
+  
+  .corner-button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+  }

@@ -60,11 +60,15 @@ const Home = () => {
       setUser({ name: userName, email: userEmail });
     }
   }, [setUser]);
+  const HandleTest = () => {
+    navigate('/test')
+  }
 
   return (
     <div className="home-container">
       <h1 className="home-title">Welcome to Acadhelper</h1>
       <p className="home-subtitle">AI-powered Gmail Reminders at your fingertips</p>
+      <button className="corner-button" onClick={HandleTest}>Go to test page</button>
       <div className="google-login-wrapper">
         {user ? (
           <button

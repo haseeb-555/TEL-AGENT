@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import EventForm from '../../components/EventForm';
 import './test.css';
 import { useUser } from '../../context/usercontext';
+import { useNavigate } from 'react-router-dom';
 const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const TestPage = () => {
@@ -11,6 +12,7 @@ const TestPage = () => {
   const [emails, setEmails] = useState([]);
   const [createLoading, setCreateLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const name = localStorage.getItem("user_name");
@@ -69,9 +71,16 @@ const TestPage = () => {
     }
   };
 
+  const handleGoHome = () => {
+    navigate('/');
+  }
+
   return (
     <div style={{ padding: "30px", fontFamily: "Comic Sans MS", backgroundColor: "#fef9e7", minHeight: "100vh" }}>
       <h1 style={{ color: "#8e44ad" }}>📩 Gmail Viewer</h1>
+      <div>
+        <button className="corner-button-test" onClick={handleGoHome}>Go Home</button>
+      </div>
 
       {user ? (
         <>
