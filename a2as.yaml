@@ -1,0 +1,326 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: haseeb-555/tel-agent
+    source: https://github.com/haseeb-555/tel-agent
+    branch: main
+    commit: "d0d69646"
+    scope: [backend/agents/subagents/company/agent.py, backend/agents/subagents/company/prompts.py, backend/agents/subagents/contest/agent.py,
+      backend/agents/subagents/contest/prompts.py, backend/routes/agents.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T16:51:03Z'
+    url: https://a2as.org/certified/agents/haseeb-555/tel-agent
+  signatures:
+    digest: sha256:FQxWOGLULHYk605DGVZnjphxKidSfwoCV_N5qpGxcJU
+    key: ed25519:TPtILhDsCgOsSVZ8qm1P31YahCP-5c6ccr1p1zxugS8
+    sig: ed25519:eMVIMRUJKCuBemfhDqaK4id1UOeYmFWlexEYP_xosns_BiH1H_Sh8_czic3-CYKmUsZ6p9Zu5yHolopcYVMSBw
+
+agents:
+  company_agent:
+    type: instance
+    params:
+      name: root_agent_of_company
+      sub_agents: [research_agent, company_name_agent, event_title_agent, deadline_agent]
+  company_name_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: company_name_extraction_agent
+      instruction: [You are an assistant that strictly extracts **only the name of the company** mentioned in the message.,
+        'Do not include extra words like "interview", "assessment", "process", or "hiring". Just return the **company name**
+          as it would appear in a list of companies.', 'Examples:', '- Message: "Google is conducting an online assessment."
+          → Company Name: Google', '- Message: "Microsoft internship drive starts next week." → Company Name: Microsoft',
+        '- Message: "Infosys Pre-placement Talk" → Company Name: Infosys', '- Message: "Join the Deloitte Virtual Hiring Challenge"
+          → Company Name: Deloitte', OUTPUT OF THE AGENT SHOULD BE ONLY SINGLE WORD OF COMPANY NAME]
+      description: extract the company name
+      output_key: company_name
+  contest_agent:
+    type: instance
+    params:
+      name: root_contest_agent
+      sub_agents: [contest_name_agent, contest_type_agent, platform_agent, start_time_agent, description_agent]
+  contest_name_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: contest_name_agent
+      instruction: [You are an assistant that extracts the **name of the coding contest** mentioned in the email., 'Just return
+          the contest name, such as "Codeforces Round 937" or "TCS CodeVita".', 'Examples:', '- Message: "Register now for
+          Codeforces Round 937 (Div. 2)." → Contest Name: Codeforces Round 937', '- Message: "Participate in TCS CodeVita
+          2024." → Contest Name: TCS CodeVita 2024', Output must be a clean contest name only.]
+      description: Extracts the name of the contest.
+      output_key: contest_name
+  contest_type_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: contest_type_agent
+      instruction: [You are an assistant that determines the **type of contest** from the email., 'Valid types include: "Coding
+          Contest", "MCQ Assessment", "Hackathon", "Quiz", "Hiring Challenge", etc.', 'Examples:', '- "This is a 60-minute
+          competitive programming contest." → Coding Contest', '- "Participate in our hiring challenge." → Hiring Challenge',
+        Output only the contest type.]
+      description: Classifies the type of contest (e.g., Coding, Hackathon).
+      output_key: contest_type
+  deadline_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: deadline_agent
+      instruction: [You are an assistant that extracts the **exact deadline time** for creating a Google Calendar reminder
+          event., 'The format must strictly follow this pattern:', 'YYYY-MM-DD HH:MM:SS (24-hour format)', This extracted
+          time will be directly used to schedule the event in Google Calendar. Only extract if an explicit date and time is
+          present in the message., 'Ignore vague words like "soon", "in a few days", "upcoming".', 'Examples:', '- Message:
+          "Register before 13th July 2024 at 5:00 PM." → 2024-07-13 17:00:00', '- Message: "Deadline: 1st August 2025, 11:59
+          PM" → 2025-08-01 23:59:00', Please extract the **most relevant and specific title**. OUTPUT OF THE AGENT SHOULD
+          ONLY be the extracted deadline time]
+      description: Extracts the deadline time from the message
+      output_key: deadline
+  description_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: contest_description_agent
+      instruction: ['You are a contest assistant. Based on the contest name and context, provide a short description including:',
+        1. What the contest is about., 2. Eligibility or participation notes., 3. Official page or registration link if available.,
+        Keep it short and useful.]
+      description: Generates a short overview and useful link.
+      output_key: description
+  event_title_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: event_agent
+      description: extracts the event title for creating the event in google remainder
+      instruction: ['You are an assistant that extracts concise and informative **event titles** for Google Calendar reminders
+          based on incoming messages about events such as company interviews, coding contests, assessments, webinars, or placement
+          sessions.', 'Your goal is to extract a short, clear title suitable for a calendar reminder. Examples of event titles
+          include:', '- MICROSOFT COMPANY INTERVIEW FOR INTERNSHIP SESSION', '- GOOGLE ONLINE ASSESSMENT FOR PLACEMENT', '-
+          AMAZON CODING CONTEST', '- TCS NINJA HIRING CHALLENGE', '- DELOITTE PRE-PLACEMENT TALK', '- INFOSYS FINAL INTERVIEW
+          ROUND', Please extract the **most relevant and specific title**. OUTPUT OF THE AGENT SHOULD ONLY BE TEXT OF EVENT
+          TITLE]
+      output_key: event_title
+  platform_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: platform_agent
+      instruction: [You are an assistant that extracts the **contest platform** mentioned in the email., 'This is usually
+          a site or service such as Codeforces, HackerRank, TCS iON, HackerEarth, etc.', 'Examples:', '- Message: "Join us
+          on HackerRank for our upcoming challenge." → Platform: HackerRank', Output only the platform name.]
+      description: Identifies the platform hosting the contest.
+      output_key: platform
+  research_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: company_research_agent
+      instruction: ['You are a research assistant. Based on the company name provided, search and return a brief overview
+          of the company including:', 1. What the company does., 2. Headquarters location., 3. Recent news or achievements
+          (if available)., 4. Official website or careers page., Keep the answer short and useful for interview or placement
+          preparation.]
+      description: Provides brief research on the given company
+      output_key: company_research
+  root_agent.0:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: root_contest_event_extraction_agent
+      instruction: ['You are an assistant that reads contest-related email messages and returns the following key details
+          in a structured dictionary format:', '1. **Contest Name**: Extract the full name of the contest (e.g., Codeforces
+          Round 937, TCS CodeVita 2024).', '2. **Contest Type**: Classify the type of contest (e.g., Coding Contest, MCQ Assessment,
+          Hackathon, Quiz).', '3. **Platform**: Extract the platform or website where the contest is being hosted (e.g., Codeforces,
+          HackerRank, TCS iON).', '4. **Start Time**: Extract the exact start time of the contest in this format: YYYY-MM-DDTHH:MM:SS
+          (24-hour format). Include only if clearly mentioned.', '5. **Description**: Provide a short overview of the contest:
+          what it is about, who can participate, and include a registration or info link if available.', '🧾 Examples:', 'Message:
+          "Register now for Codeforces Round 937 (Div. 2) starting on 25th May 2024 at 6:00 PM on Codeforces."', →, '{', '"Contest
+          Name": "Codeforces Round 937",', '"Contest Type": "Coding Contest",', '"Platform": "Codeforces",', '"Start Time":
+          "2024-05-25T18:00:00",', '"Description": "Codeforces Round 937 is a competitive programming contest hosted on Codeforces.
+          It is open for Div. 2 participants. Register at: https://codeforces.com/contests"', '}', 'ONLY return a single dictionary
+          in JSON format with the five keys: Contest Name, Contest Type, Platform, Start Time, Description.']
+      description: Extracts structured contest event details from emails.
+      output_key: final_response
+      instance: root_agent
+  root_agent.1:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: root_event_extraction_agent
+      instruction: ['You are an assistant that reads placement-related email messages and returns the following key details
+          in a structured dictionary format:', '1. *Name*: Extract ONLY the name of the company. Do NOT include extra words
+          like "interview", "hiring", "drive", etc. Just the proper company name (e.g., Google, Microsoft, Infosys).', '2.
+          *Event Title*: Provide a short, informative calendar reminder title (e.g., GOOGLE ONLINE ASSESSMENT, TCS NINJA HIRING
+          CHALLENGE).', '3. *Deadline*: Extract the exact deadline time in format YYYY-MM-DDTHH:MM:SS (24-hour format). Only
+          include if clearly mentioned.', '4. *Description*: Give a short research-based overview of the company including
+          what it does, headquarters, recent news (if any), and a link to official/careers page.', '🧾 Examples:', 'Message:
+          "Google is conducting an online assessment. Register before 13th July 2024 at 5:00 PM."', →, '{', '"Name": "Google",',
+        '"Event Title": "GOOGLE ONLINE ASSESSMENT",', '"Deadline": "2024-07-13T17:00:00",', '"Description": "Google is a multinational
+          technology company headquartered in Mountain View, California. It specializes in internet-related services and products.
+          Recent initiatives include developments in AI and Search. Careers: https://careers.google.com"', '}', 'ONLY return
+          a single dictionary in JSON format with the four keys: Name, Event Title, Deadline, Description.']
+      description: Extracts all relevant placement event information in one response.
+      output_key: final_response
+      instance: root_agent
+  start_time_agent:
+    type: instance
+    models: [gemini-2.0-flash-exp]
+    params:
+      name: start_time_agent
+      instruction: ['You are an assistant that extracts the **start time** of the contest in this format:', 'YYYY-MM-DD HH:MM:SS
+          (24-hour format)', Only extract the time if it is explicitly mentioned., 'Examples:', '- "Contest begins on 10th
+          May 2024 at 6:30 PM." → 2024-05-10 18:30:00', '- "Starts: August 20, 2024 at 09:00 AM." → 2024-08-20 09:00:00']
+      description: Extracts the start time in calendar-friendly format.
+      output_key: start_time
+
+models:
+  gemini-2.0-flash-exp:
+    type: literal
+    agents: [contest_name_agent, contest_type_agent, platform_agent, start_time_agent, description_agent, root_agent.0, company_name_agent,
+      event_title_agent, deadline_agent, research_agent, root_agent.1]
+
+teams:
+  company_agent:
+    type: parallel
+    agents: [company_agent, research_agent, company_name_agent, event_title_agent, deadline_agent]
+  contest_agent:
+    type: parallel
+    agents: [contest_agent, contest_name_agent, contest_type_agent, platform_agent, start_time_agent, description_agent]
+
+imports:
+  agent_router: routes.agents.agent_router
+  APIRouter: fastapi.APIRouter
+  asyncio: asyncio
+  atexit: atexit
+  BackgroundScheduler: apscheduler.schedulers.background.BackgroundScheduler
+  base64: base64
+  BodyInput: config.config.BodyInput
+  COMPANY_NAME_PROMPT: prompts.COMPANY_NAME_PROMPT
+  Content: google.genai.types.Content
+  CONTEST_NAME_PROMPT: prompts.CONTEST_NAME_PROMPT
+  CONTEST_TYPE_PROMPT: prompts.CONTEST_TYPE_PROMPT
+  CORSMiddleware: fastapi.middleware.cors.CORSMiddleware
+  datetime: datetime.datetime
+  DEADLINE_PROMPT: prompts.DEADLINE_PROMPT
+  DESCRIPTION_PROMPT: prompts.DESCRIPTION_PROMPT
+  email_router: routes.emails.email_router
+  event_router: routes.events.event_router
+  EVENT_TITLE_PROMPT: prompts.EVENT_TITLE_PROMPT
+  extract_deadline_from_body: routes.agents.extract_deadline_from_body
+  FastAPI: fastapi.FastAPI
+  FileResponse: fastapi.responses.FileResponse
+  GMAIL_API_BASE: config.config.GMAIL_API_BASE
+  google_search: google.adk.tools.google_search
+  GOOGLE_TOKEN_URL: config.config.GOOGLE_TOKEN_URL
+  HTTPException: fastapi.HTTPException
+  httpx: httpx
+  individual_serial: schema.schema.individual_serial
+  InMemorySessionService: google.adk.sessions.in_memory_session_service.InMemorySessionService
+  json: json
+  JSONResponse: fastapi.responses.JSONResponse
+  LiveRequestQueue: google.adk.agents.LiveRequestQueue
+  LlmAgent: google.adk.agents.llm_agent.LlmAgent
+  load_dotenv: dotenv.load_dotenv
+  LoopAgent: google.adk.agents.loop_agent.LoopAgent
+  ObjectId: bson.ObjectId
+  os: os
+  ParallelAgent: google.adk.agents.parallel_agent.ParallelAgent
+  Part: google.genai.types.Part
+  Path: pathlib.Path
+  PLATFORM_PROMPT: prompts.PLATFORM_PROMPT
+  random: random
+  Request: fastapi.Request
+  requests: requests
+  RESEARCH_PROMPT: prompts.RESEARCH_PROMPT
+  root_agent: agents.subagents.company.agent.root_agent
+  RunConfig: google.adk.agents.run_config.RunConfig
+  Runner: google.adk.runners.Runner
+  START_TIME_PROMPT: prompts.START_TIME_PROMPT
+  StaticFiles: fastapi.staticfiles.StaticFiles
+  string: string
+  timedelta: datetime.timedelta
+  types: google.genai.types
+  User: models.user.User
+  user_router: routes.user.user_router
+  USERINFO_URL: config.config.USERINFO_URL
+  users: config.database.users
+  WebSocket: fastapi.WebSocket
+
+functions:
+  call_agent_async:
+    type: async
+    module: backend.routes.agents
+    args: [query, runner, app_name, session_id]
+  createEvents:
+    type: async
+    module: backend.routes.events
+    args: [request]
+  extract_deadline_from_body:
+    type: async
+    module: backend.routes.agents
+    args: [body]
+    params:
+      returns: dict
+  get_all_user_emails:
+    type: sync
+    module: backend.main
+  root:
+    type: async
+    module: backend.routes.agents
+  schedule_events:
+    type: sync
+    module: backend.main
+  start_agent_session:
+    type: sync
+    module: backend.routes.agents
+    args: [session_id]
+  to_rfc3339:
+    type: sync
+    module: backend.routes.events
+    args: [dt_str]
+    params:
+      returns: str
+  websocket_endpoint:
+    type: async
+    module: backend.routes.agents
+    args: [websocket, session_id]
+
+variables:
+  GOOGLE_CLIENT_ID:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [backend.routes.events, backend.routes.agents]
+  GOOGLE_CLIENT_SECRET:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [backend.routes.events, backend.routes.agents]
+  REDIRECT_URI:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [backend.routes.events, backend.routes.agents]
+
+files:
+  index.html:
+    type: pattern
+    actions: [read]
+    params:
+      caller: [os.path.join]
+      pattern: [STATIC_DIR, index.html]
+  STATIC_DIR:
+    type: literal
+    actions: [read]
+    params:
+      caller: [Path(static)]
+
+networks:
+  localhost:
+    type: api
+    actions: [POST]
+    urls: [/createEvents]
+    protocols: [http]
+    ports: ["8000"]
+    params:
+      caller: [schedule_events]
